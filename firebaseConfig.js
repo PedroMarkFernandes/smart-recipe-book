@@ -4,12 +4,12 @@ import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
 
 // REPLACE THESE VALUES WITH YOUR ACTUAL FIREBASE KEYS
 const firebaseConfig = {
-  apiKey: "AIzaSyANxiOMiZmb5YzFSbTyu_PRJmTnSHDwMXQ",
-  authDomain: "recipeapp-6a14c.firebaseapp.com",
-  projectId: "recipeapp-6a14c",
-  storageBucket: "recipeapp-6a14c.firebasestorage.app",
-  messagingSenderId: "162735172686",
-  appId: "1:162735172686:web:91c36b0d41c97f216b671f"
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
@@ -20,3 +20,4 @@ const auth = initializeAuth(app, {
 });
 
 export { auth };
+
