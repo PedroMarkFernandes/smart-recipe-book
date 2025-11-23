@@ -1,19 +1,23 @@
 import axios from 'axios';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
 
 export default function Home() {
-  const [meal, setMeal] = useState(null);
+  const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { logout } = useAuth();
+  const router = useRouter();
 
-  const fetchRandomMeal = async () => {
+  const fetchRandomMeals = async () => {
     setLoading(true);
     try {
-      // HITTING THE EXTERNAL API (Rubric Requirement)
-      const response = await axios.get('https://www.themealdb.com/api/json/v1/1/random.php');
-      setMeal(response.data.meals[0]);
+      // Call the API twice to get 2 random meals
+      const [res1, res2] = await Promise.all([
+        axios.get('https://www.themealdb.com/api/json/v1/1/random.php'),
+        axios.get('https://www.themealdb.com/api/json/v1/1/random.php')
+      ]);
+      
+      setMeals([res1.data.meals[0], res2.data.meals[0]]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -22,47 +26,48 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchRandomMeal();
+    fetchRandomMeals();
   }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Recipe of the Day 🍲</Text>
-        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.title}>Recipes of the Day 🍲</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#ff6347" />
-      ) : meal ? (
-        <View style={styles.card}>
-          <Image source={{ uri: meal.strMealThumb }} style={styles.image} />
-          <Text style={styles.mealName}>{meal.strMeal}</Text>
-          <Text style={styles.category}>{meal.strCategory} | {meal.strArea}</Text>
-          
-          <TouchableOpacity style={styles.button} onPress={fetchRandomMeal}>
-            <Text style={styles.buttonText}>Get Another Random Meal</Text>
-          </TouchableOpacity>
-        </View>
+        <ActivityIndicator size="large" color="#ff6347" style={{ marginTop: 50 }} />
       ) : (
-        <Text>No meal found</Text>
+        <>
+          {meals.map((meal) => (
+            <TouchableOpacity 
+              key={meal.idMeal}
+              style={styles.card} 
+              onPress={() => router.push(`/recipe/${meal.idMeal}`)}
+            >
+              <Image source={{ uri: meal.strMealThumb }} style={styles.image} />
+              <View style={styles.textContainer}>
+                <Text style={styles.mealName}>{meal.strMeal}</Text>
+                <Text style={styles.category}>{meal.strCategory} | {meal.strArea}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+          
+          <TouchableOpacity style={styles.refreshButton} onPress={fetchRandomMeals}>
+            <Text style={styles.buttonText}>Refresh Recipes 🔄</Text>
+          </TouchableOpacity>
+        </>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, alignItems: 'center', backgroundColor: '#f5f5f5', flexGrow: 1 },
-  header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, marginTop: 10 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-  logoutBtn: { backgroundColor: '#ff6347', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 5 },
-  logoutText: { color: 'white', fontWeight: 'bold', fontSize: 12 },
-  card: { width: '100%', backgroundColor: '#fff', borderRadius: 15, padding: 15, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
-  image: { width: '100%', height: 250, borderRadius: 10, marginBottom: 15 },
-  mealName: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 5, color: '#333' },
-  category: { fontSize: 16, color: '#666', marginBottom: 20 },
-  button: { backgroundColor: '#ff6347', padding: 12, borderRadius: 25, width: '100%', alignItems: 'center' },
-  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
+  container: { padding: 20, alignItems: 'center' },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', width: '100%' },
+  card: { width: '100%', backgroundColor: '#fff', borderRadius: 15, marginBottom: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10, elevation: 5, overflow: 'hidden' },
+  image: { width: '100%', height: 200 },
+  textContainer: { padding: 15, alignItems: 'center' },
+  mealName: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 5 },
+  category: { fontSize: 14, color: '#666' },
+  refreshButton: { backgroundColor: '#ff6347', padding: 12, borderRadius: 25, width: '100%', alignItems: 'center', marginTop: 10 },
+  buttonText: { color: 'white', fontWeight: 'bold' }
 });
