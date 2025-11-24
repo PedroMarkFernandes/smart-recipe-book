@@ -2,17 +2,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext'; // Import Theme
 
 export default function TabLayout() {
   const { logout } = useAuth();
+  const { colors } = useTheme(); // Get colors from our new ThemeContext
 
   return (
     <Tabs screenOptions={{ 
-      tabBarActiveTintColor: '#ff6347',
-      headerTitleAlign: 'center', // Centers the title (Home, Search, Favorites)
+      tabBarActiveTintColor: colors.tint,
+      // Apply dynamic background and border colors
+      tabBarStyle: { backgroundColor: colors.background, borderTopColor: colors.border },
+      headerStyle: { backgroundColor: colors.background },
+      headerTintColor: colors.text,
+      headerTitleAlign: 'center',
       headerRight: () => (
         <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-          <Ionicons name="log-out-outline" size={24} color="#ff6347" />
+          <Ionicons name="log-out-outline" size={24} color={colors.tint} />
         </TouchableOpacity>
       )
     }}>
@@ -35,6 +41,14 @@ export default function TabLayout() {
         options={{ 
           title: 'Favorites', 
           tabBarIcon: ({ color }) => <Ionicons name="heart" size={24} color={color} /> 
+        }} 
+      />
+      {/* NEW SETTINGS TAB */}
+      <Tabs.Screen 
+        name="settings" 
+        options={{ 
+          title: 'Settings', 
+          tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={24} color={color} /> 
         }} 
       />
     </Tabs>
