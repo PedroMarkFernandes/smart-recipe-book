@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext'; // <--- Import Theme
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function RecipeDetails() {
   const { id } = useLocalSearchParams();
@@ -13,15 +13,16 @@ export default function RecipeDetails() {
   const [isFavorite, setIsFavorite] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current; 
   
-  // USE THEME (Get colors and font size)
   const { colors, fontSizeMultiplier } = useTheme(); 
 
   useEffect(() => {
     const fetchMeal = async () => {
       try {
         const response = await axios.get(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
-        setMeal(response.data.meals[0]);
+        const mealData = response.data.meals[0];
+        setMeal(mealData);
         checkIfFavorite();
+        addToRecentlyViewed(mealData); // <--- NEW: Save to history
         Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
       } catch (error) {
         console.error(error);
@@ -31,6 +32,32 @@ export default function RecipeDetails() {
     };
     fetchMeal();
   }, [id]);
+
+  // NEW FUNCTION: Save to Recently Viewed (Max 3 items)
+  const addToRecentlyViewed = async (mealItem) => {
+    try {
+      const history = await AsyncStorage.getItem('recentlyViewed');
+      let list = history ? JSON.parse(history) : [];
+      
+      // Remove if it's already there (so we can move it to the top)
+      list = list.filter(item => item.idMeal !== mealItem.idMeal);
+      
+      // Add current meal to the front
+      list.unshift({
+        idMeal: mealItem.idMeal,
+        strMeal: mealItem.strMeal,
+        strMealThumb: mealItem.strMealThumb,
+        strCategory: mealItem.strCategory
+      });
+      
+      // Keep only the top 5
+      if (list.length > 5) list = list.slice(0, 5);
+      
+      await AsyncStorage.setItem('recentlyViewed', JSON.stringify(list));
+    } catch (error) {
+      console.error("Failed to save recently viewed", error);
+    }
+  };
 
   const checkIfFavorite = async () => {
     try {
@@ -84,7 +111,6 @@ export default function RecipeDetails() {
       <Animated.Image source={{ uri: meal.strMealThumb }} style={[styles.image, { opacity: fadeAnim }]} />
       
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        {/* Dynamic Font Size and Color */}
         <Text style={[styles.title, { color: colors.text, fontSize: 24 * fontSizeMultiplier }]}>{meal.strMeal}</Text>
         <View style={styles.actions}>
           <TouchableOpacity onPress={onShare} style={styles.iconBtn}>
@@ -146,5 +172,5 @@ const styles = StyleSheet.create({
   stepContainer: { flexDirection: 'row', marginBottom: 20 },
   stepBadge: { width: 30, height: 30, backgroundColor: '#ff6347', borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginRight: 15, marginTop: 2 },
   stepNumber: { color: 'white', fontWeight: 'bold' },
-  instructionText: { lineHeight: 28, flex: 1 } // Increased line height slightly for accessibility
+  instructionText: { lineHeight: 28, flex: 1 }
 });
