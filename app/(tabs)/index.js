@@ -47,8 +47,8 @@ export default function Home() {
     >
       {/* HERO SECTION (Keeps brand color, but text scales) */}
       <View style={styles.heroContainer}>
-        <Text style={[styles.heroTitle, { fontSize: 28 * fontSizeMultiplier }]}>What are we cooking today? 👨‍🍳</Text>
-        <Text style={[styles.heroSubtitle, { fontSize: 16 * fontSizeMultiplier }]}>Discover delicious recipes below.</Text>
+        <Text style={[styles.heroTitle, { fontSize: 28 * fontSizeMultiplier }]}>What are we cooking today?</Text>
+        <Text style={[styles.heroSubtitle, { fontSize: 16 * fontSizeMultiplier }]}>Discover delicious recipes below!👨‍🍳</Text>
       </View>
 
       <View style={styles.contentContainer}>
