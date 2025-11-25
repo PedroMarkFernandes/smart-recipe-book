@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router'; // Added useRouter
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function RecipeDetails() {
   const { id } = useLocalSearchParams();
+  const router = useRouter(); // Init router
   const [meal, setMeal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -22,7 +23,7 @@ export default function RecipeDetails() {
         const mealData = response.data.meals[0];
         setMeal(mealData);
         checkIfFavorite();
-        addToRecentlyViewed(mealData); // <--- NEW: Save to history
+        addToRecentlyViewed(mealData);
         Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
       } catch (error) {
         console.error(error);
@@ -33,29 +34,21 @@ export default function RecipeDetails() {
     fetchMeal();
   }, [id]);
 
-  // NEW FUNCTION: Save to Recently Viewed (Max 3 items)
   const addToRecentlyViewed = async (mealItem) => {
     try {
       const history = await AsyncStorage.getItem('recentlyViewed');
       let list = history ? JSON.parse(history) : [];
-      
-      // Remove if it's already there (so we can move it to the top)
       list = list.filter(item => item.idMeal !== mealItem.idMeal);
-      
-      // Add current meal to the front
       list.unshift({
         idMeal: mealItem.idMeal,
         strMeal: mealItem.strMeal,
         strMealThumb: mealItem.strMealThumb,
         strCategory: mealItem.strCategory
       });
-      
-      // Keep only the top 5
       if (list.length > 5) list = list.slice(0, 5);
-      
       await AsyncStorage.setItem('recentlyViewed', JSON.stringify(list));
     } catch (error) {
-      console.error("Failed to save recently viewed", error);
+      console.error(error);
     }
   };
 
@@ -78,12 +71,12 @@ export default function RecipeDetails() {
       if (isFavorite) {
         list = list.filter(item => item.idMeal !== id);
         setIsFavorite(false);
-        Alert.alert("Removed", "Recipe removed from favorites");
+        Alert.alert("Removed", "Recipe removed from Favorites");
       } else {
         const mealToSave = { idMeal: meal.idMeal, strMeal: meal.strMeal, strMealThumb: meal.strMealThumb };
         list.push(mealToSave);
         setIsFavorite(true);
-        Alert.alert("Saved", "Recipe added to favorites!");
+        Alert.alert("Saved", "Recipe added to your Favorites!");
       }
       await AsyncStorage.setItem('favorites', JSON.stringify(list));
     } catch (error) {
@@ -108,7 +101,18 @@ export default function RecipeDetails() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Animated.Image source={{ uri: meal.strMealThumb }} style={[styles.image, { opacity: fadeAnim }]} />
+      
+      {/* HEADER IMAGE WITH BACK BUTTON */}
+      <View>
+        <Animated.Image source={{ uri: meal.strMealThumb }} style={[styles.image, { opacity: fadeAnim }]} />
+        {/* NEW BACK BUTTON OVERLAY */}
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()} // <-- Goes back to previous screen
+        >
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
       
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text, fontSize: 24 * fontSizeMultiplier }]}>{meal.strMeal}</Text>
@@ -159,6 +163,22 @@ export default function RecipeDetails() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   image: { width: '100%', height: 300 },
+  
+  // New Back Button Styles
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 8,
+    elevation: 5, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1 },
   title: { fontWeight: 'bold', flex: 1, marginRight: 10 },
   actions: { flexDirection: 'row', alignItems: 'center' },
