@@ -1,39 +1,37 @@
-# 🍳 Smart Recipe Book
+# 🍳 MiniChef
 
-A cross-platform mobile application built with React Native (Expo) that allows users to discover, search, view, share and save recipes. This project was developed for the MAB001 Mobile App Development module.
-
-The application demonstrates modern mobile development practices including API integration, Authentication, Local Storage, State Management, and Accessibility.
+A cross-platform mobile application built with React Native (Expo) that allows users to discover, search, view, share and save recipes. This project was developed for the MAB001 Mobile App Development module. The application demonstrates modern mobile development practices including API integration, Authentication, Local Storage, State Management, and Accessibility.
 
 
 ## 📱 Key Features
 
-Core Functionality
+### Core Functionality
 
-User Authentication: Secure Sign Up and Login using Firebase Auth.
+**User Authentication**: Secure Sign Up and Login using Firebase Auth.
 
-API Integration: Dynamic data fetching from TheMealDB API (Public JSON API).
+**API Integration**: Dynamic data fetching from TheMealDB API (Public JSON API).
 
-Local Storage: "Favorites" and "Recently Viewed" lists are persisted locally on the device using AsyncStorage.
+**Local Storage**: "Favorites" and "Recently Viewed" lists are persisted locally on the device using AsyncStorage.
 
-Search & Filter: Users can search recipes by name or filter by category (e.g., "Beef", "Vegan").
-
-
-User Experience (UX) & Design
-
-Visual Polish: Hero headers, card-based layouts, and smooth fade-in animations for images.
-
-Smart History: The app remembers the user's last 5 searches and recently viewed recipes for quick access.
-
-Interactive Elements: Pull-to-refresh functionality on the home screen, social sharing, and touchable feedback.
+**Search & Filter**: Users can search recipes by name or filter by category (e.g., "Beef", "Vegan").
 
 
-Accessibility & Settings
+### User Experience (UX) & Design
 
-Dark Mode: Full theme toggle support (Light/Dark) via a custom ThemeContext.
+**Visual Polish**: Hero headers, card-based layouts, and smooth fade-in animations for images.
 
-Dynamic Type: Adjustable text size settings (Normal, Large, Huge) for better readability.
+**Smart History**: The app remembers the user's last 5 searches and recently viewed recipes for quick access.
 
-Navigation: Intuitive Tab-based navigation using expo-router with a persistent stack history for "Back" navigation.
+**Interactive Elements**: Pull-to-refresh functionality on the home screen, social sharing, and touchable feedback.
+
+
+### Accessibility & Settings
+
+**Dark Mode**: Full theme toggle support (Light/Dark) via a custom ThemeContext.
+
+**Dynamic Type**: Adjustable text size settings (Normal, Large, Huge) for better readability.
+
+**Navigation**: Intuitive Tab-based navigation using expo-router with a persistent stack history for "Back" navigation.
 
 
 ## 🛠 Tech Stack
@@ -51,7 +49,7 @@ Testing: Jest (Unit Testing)
 
 ## 🚀 Installation & Setup Guide
 
-Prerequisites:
+### Prerequisites:
 
 Node.js (LTS version recommended) installed.
 
@@ -96,14 +94,14 @@ iOS: Open your Camera app, scan the QR code, and tap the prompt to open in Expo 
 
 ## 🧪 Testing & Verification
 
-Unit Tests
+### Unit Tests
 
 The project includes unit tests for utility functions (specifically the instruction cleaning logic). To run the test suite:
 
 npm test
 
 
-Expected Output:
+### Expected Output:
 
 PASS  utils/helpers.test.js
   cleanInstructions
@@ -118,5 +116,5 @@ Tests:       4 passed, 4 total
 
 
 Author: Pedro Fernandes
-Module: Mobile App Development (MAB001)
+Module: Mobile App Development
 
