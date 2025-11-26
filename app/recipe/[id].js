@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { cleanInstructions } from '../../utils/helpers'; // <--- Imports your helper
 
 export default function RecipeDetails() {
   const { id } = useLocalSearchParams();
@@ -38,20 +39,24 @@ export default function RecipeDetails() {
     try {
       const history = await AsyncStorage.getItem('recentlyViewed');
       let list = history ? JSON.parse(history) : [];
-      // Remove if exists to avoid duplicates/move to top
+      
+      // Remove if it's already there (so we can move it to the top)
       list = list.filter(item => item.idMeal !== mealItem.idMeal);
-      // Add to front
+      
+      // Add current meal to the front
       list.unshift({
         idMeal: mealItem.idMeal,
         strMeal: mealItem.strMeal,
         strMealThumb: mealItem.strMealThumb,
         strCategory: mealItem.strCategory
       });
-      // Limit to 3
+      
+      // Keep only the top 3
       if (list.length > 3) list = list.slice(0, 3);
+      
       await AsyncStorage.setItem('recentlyViewed', JSON.stringify(list));
     } catch (error) {
-      console.error(error);
+      console.error("Failed to save recently viewed", error);
     }
   };
 
@@ -98,12 +103,8 @@ export default function RecipeDetails() {
   if (loading) return <ActivityIndicator size="large" color={colors.tint} style={{marginTop: 50}} />;
   if (!meal) return <Text style={{color: colors.text, textAlign: 'center', marginTop: 50}}>Recipe not found</Text>;
 
-  const instructions = meal.strInstructions
-    ? meal.strInstructions
-        .split(/\r\n|\n/)
-        .filter((text) => text.trim().length > 0)
-        .map((text) => text.replace(/^\d+\.\s*/, '').trim())
-    : [];
+  // USES YOUR HELPER FUNCTION HERE
+  const instructions = cleanInstructions(meal.strInstructions);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -111,6 +112,7 @@ export default function RecipeDetails() {
       {/* HEADER IMAGE WITH BACK BUTTON */}
       <View>
         <Animated.Image source={{ uri: meal.strMealThumb }} style={[styles.image, { opacity: fadeAnim }]} />
+        {/* CUSTOM BACK BUTTON */}
         <TouchableOpacity 
           style={styles.backButton} 
           onPress={() => router.back()} 
@@ -169,6 +171,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   image: { width: '100%', height: 300 },
   
+  // Absolute positioning for the back button over the image
   backButton: {
     position: 'absolute',
     top: 40,
