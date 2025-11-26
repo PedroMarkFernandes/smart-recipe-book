@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useFocusEffect, useRouter } from 'expo-router'; // Added useFocusEffect
-import { useCallback, useEffect, useState } from 'react'; // Added useCallback
-import { ActivityIndicator, FlatList, Image, ImageBackground, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Image, ImageBackground, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function Search() {
@@ -12,7 +12,7 @@ export default function Search() {
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState('');
   const [recentSearches, setRecentSearches] = useState([]);
-  const [recentlyViewed, setRecentlyViewed] = useState([]); // NEW STATE
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [loading, setLoading] = useState(false);
   
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function Search() {
     loadCategories();
   }, []);
 
-  // NEW: Load History & Recently Viewed every time screen is focused
+  // Load History & Recently Viewed every time screen is focused
   useFocusEffect(
     useCallback(() => {
       loadRecentSearches();
@@ -49,7 +49,6 @@ export default function Search() {
     }
   };
 
-  // NEW FUNCTION
   const loadRecentlyViewed = async () => {
     try {
       const history = await AsyncStorage.getItem('recentlyViewed');
@@ -93,12 +92,23 @@ export default function Search() {
       setMeals(response.data.meals || []);
     } catch (error) {
       console.error(error);
+      Alert.alert("Connection Error", "Could not fetch recipes. Please check your internet.");
     } finally {
       setLoading(false);
     }
   };
 
+  // --- FIXED TOGGLE LOGIC HERE ---
   const filterByCategory = async (category) => {
+    // If clicking the SAME category again, turn it OFF
+    if (activeCategory === category) {
+      setActiveCategory(''); // Turn off highlight
+      setMeals([]); // Clear results
+      setQuery(''); // Clear text
+      return; // Stop here
+    }
+
+    // Otherwise, proceed as normal
     setLoading(true);
     setQuery(''); 
     setActiveCategory(category);
@@ -107,6 +117,7 @@ export default function Search() {
       setMeals(response.data.meals || []);
     } catch (error) {
       console.error(error);
+      Alert.alert("Connection Error", "Could not fetch recipes.");
     } finally {
       setLoading(false);
     }
@@ -153,8 +164,9 @@ export default function Search() {
           onChangeText={setQuery}
           onSubmitEditing={() => searchMeals(query)}
         />
-        {query.length > 0 && (
-          <TouchableOpacity onPress={() => { setQuery(''); setMeals([]); }}>
+        {/* Clear Button works for both Text AND Category now */}
+        {(query.length > 0 || activeCategory.length > 0) && (
+          <TouchableOpacity onPress={() => { setQuery(''); setActiveCategory(''); setMeals([]); }}>
             <Ionicons name="close-circle" size={20} color={colors.subText} />
           </TouchableOpacity>
         )}
@@ -188,7 +200,7 @@ export default function Search() {
             </View>
           )}
 
-          {/* 2. RECENTLY VIEWED (NEW SECTION) */}
+          {/* 2. RECENTLY VIEWED */}
           {recentlyViewed.length > 0 && (
             <View style={styles.historyContainer}>
               <View style={styles.historyHeader}>
