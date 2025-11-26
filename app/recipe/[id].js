@@ -1,14 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useLocalSearchParams, useRouter } from 'expo-router'; // Added useRouter
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function RecipeDetails() {
   const { id } = useLocalSearchParams();
-  const router = useRouter(); // Init router
+  const router = useRouter(); 
   const [meal, setMeal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -38,14 +38,17 @@ export default function RecipeDetails() {
     try {
       const history = await AsyncStorage.getItem('recentlyViewed');
       let list = history ? JSON.parse(history) : [];
+      // Remove if exists to avoid duplicates/move to top
       list = list.filter(item => item.idMeal !== mealItem.idMeal);
+      // Add to front
       list.unshift({
         idMeal: mealItem.idMeal,
         strMeal: mealItem.strMeal,
         strMealThumb: mealItem.strMealThumb,
         strCategory: mealItem.strCategory
       });
-      if (list.length > 5) list = list.slice(0, 5);
+      // Limit to 3
+      if (list.length > 3) list = list.slice(0, 3);
       await AsyncStorage.setItem('recentlyViewed', JSON.stringify(list));
     } catch (error) {
       console.error(error);
@@ -71,12 +74,12 @@ export default function RecipeDetails() {
       if (isFavorite) {
         list = list.filter(item => item.idMeal !== id);
         setIsFavorite(false);
-        Alert.alert("Removed", "Recipe removed from Favorites");
+        Alert.alert("Removed", "Recipe removed from favorites");
       } else {
         const mealToSave = { idMeal: meal.idMeal, strMeal: meal.strMeal, strMealThumb: meal.strMealThumb };
         list.push(mealToSave);
         setIsFavorite(true);
-        Alert.alert("Saved", "Recipe added to your Favorites!");
+        Alert.alert("Saved", "Recipe added to favorites!");
       }
       await AsyncStorage.setItem('favorites', JSON.stringify(list));
     } catch (error) {
@@ -93,10 +96,13 @@ export default function RecipeDetails() {
   };
 
   if (loading) return <ActivityIndicator size="large" color={colors.tint} style={{marginTop: 50}} />;
-  if (!meal) return <Text style={{color: colors.text}}>Recipe not found</Text>;
+  if (!meal) return <Text style={{color: colors.text, textAlign: 'center', marginTop: 50}}>Recipe not found</Text>;
 
   const instructions = meal.strInstructions
-    ? meal.strInstructions.split(/\r\n|\n/).filter((text) => text.trim().length > 0).map((text) => text.replace(/^\d+\.\s*/, '').trim())
+    ? meal.strInstructions
+        .split(/\r\n|\n/)
+        .filter((text) => text.trim().length > 0)
+        .map((text) => text.replace(/^\d+\.\s*/, '').trim())
     : [];
 
   return (
@@ -105,10 +111,9 @@ export default function RecipeDetails() {
       {/* HEADER IMAGE WITH BACK BUTTON */}
       <View>
         <Animated.Image source={{ uri: meal.strMealThumb }} style={[styles.image, { opacity: fadeAnim }]} />
-        {/* NEW BACK BUTTON OVERLAY */}
         <TouchableOpacity 
           style={styles.backButton} 
-          onPress={() => router.back()} // <-- Goes back to previous screen
+          onPress={() => router.back()} 
         >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
@@ -164,7 +169,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   image: { width: '100%', height: 300 },
   
-  // New Back Button Styles
   backButton: {
     position: 'absolute',
     top: 40,
@@ -172,8 +176,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 8,
-    elevation: 5, // Shadow for Android
-    shadowColor: '#000', // Shadow for iOS
+    elevation: 5, 
+    shadowColor: '#000', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
